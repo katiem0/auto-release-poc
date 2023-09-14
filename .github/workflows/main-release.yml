@@ -1,0 +1,32 @@
+name: Latest Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Commit Release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+    steps:
+      - name: "Get Pull Request Number and Comments"
+        run: |
+          echo ${{ github.event.pull_request.number }}
+      - name: Checkout Reference
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Promote Draft Release to Latest
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./src/.github/scripts/release/promote_draft.js')
+            await script({github, context, core})
