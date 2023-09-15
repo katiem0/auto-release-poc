@@ -6,4 +6,4 @@ A test file to aid in the tracking and visibility of changes through releases.
 
 Updates made to this section to test out release functionality.
 
-Alpha -testing
+Alpha -testing modifications for pull request merging
