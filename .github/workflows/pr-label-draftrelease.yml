@@ -34,7 +34,7 @@ jobs:
         with:
           mode: exactly
           count: 1
-          labels: "semver:patch, semver:major, sember:minor, no-release, transition"
+          labels: "semver:patch, semver:major, semver:minor, no-release, transition"
           add_comment: true
       - name: Has change type label
         uses: mheap/github-action-required-labels@v5
