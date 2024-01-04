@@ -14,4 +14,4 @@ updates:
       interval: "daily"
     labels:
       - "chore"
-      - "semver:patch"
+      - "no-release"
