@@ -2,6 +2,18 @@
 
 <!-- BEGIN_CHANGELOG_ACTION -->
 
+<!-- BEGIN_CHANGELOG_FROM_2 -->
+### Version 2.0.0
+
+#### enhancement
+
+* PR [#2](https://github.com/petercort/terraform-auto-release/pull/2) - Create dj-khaled-no1
+
+```
+Note: adds yet another really sweet file.
+```
+<!-- END_CHANGELOG_FROM_2 -->
+
 <!-- BEGIN_CHANGELOG_FROM_1 -->
 ### Version 1.0.0
 
