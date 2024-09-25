@@ -18,14 +18,21 @@ jobs:
           node-version: '20'
       - name: install axios
         run: npm install axios
-      - run: ls -la
       - name: Create Change Request
-        run: node .github/scripts/snow/create-change-request.js
+        uses: actions/github-script@v7
+        with: 
+          script: |
+            const { createChangeRequest } = await import('.github/scripts/snow/snowRequests.js')
+            await createChangeRequest()
       - name: Get change request from ServiceNow
         id: get-request
         env:
           sys_id: ${{ steps.create-request.outputs.sys_id }}
-        run: node .github/scripts/snow/wait-for-approval.js
+        uses: actions/github-script@v7
+        with: 
+          script: |
+            const { waitForApproval)  = await import('.github/scripts/snow/snowRequests.js')
+            await waitForApproval()
 
       - name: Update PR with Service Now 
         uses: actions/github-script@v7
