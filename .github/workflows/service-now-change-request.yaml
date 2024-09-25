@@ -16,6 +16,7 @@ jobs:
           node-version: '20'
       - name: install axios
         run: npm install axios
+      - run: ls -la
       - name: Create Change Request
         run: node .github/scripts/snow/create-change-request.js
       - name: Get change request from ServiceNow
