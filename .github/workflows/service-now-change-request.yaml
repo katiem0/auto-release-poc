@@ -17,12 +17,12 @@ jobs:
       - name: install axios
         run: npm install axios
       - name: Create Change Request
-        run: node ./scripts/snow/create-change-request.js
+        run: node ./.github/scripts/snow/create-change-request.js
       - name: Get change request from ServiceNow
         id: get-request
         env:
           sys_id: ${{ steps.create-request.outputs.sys_id }}
-        run: node ./scripts/snow/wait-for-approval.js
+        run: node ./.github/scripts/snow/wait-for-approval.js
 
       - name: Update PR with Service Now 
         uses: actions/github-script@v7
