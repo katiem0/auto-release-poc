@@ -16,43 +16,14 @@ jobs:
           node-version: '20'
       - name: install axios
         run: npm install axios
-      - name: Submit change request to ServiceNow
-        id: create-request
-        run: |
-          const axios = require('axios')
-          const url = `${process.env.SNOWURL}/api/sn_chg_rest/change/normal`
-          const username = process.env.SNOW_USERNAME
-          const password = process.env.SNOW_PASSWORD
-          const auth = {
-            username: username,
-            password: password
-          }
-          const body = {
-            "short_description": "pc-test",
-            "description": "This is a description of the standard change request.",
-            "assignment_group": "assignment_group_sys_id",
-            "requested_by": "requested_by_user_sys_id"
-          }
-          const response = await axios.post(url, body, { auth })
-          console.log(`Created request: ${response.data.number.display_value}`)
-          core.setOutput('sys_id', response.data.number.sys_id.value);
+      - name: Create Change Request
+        run: node ../scripts/snow/create-change-request.js
       - name: Get change request from ServiceNow
         id: get-request
-        run: |
-          const axios = require('axios')
-          const url = `${process.env.SNOWURL}/api/sn_chg_rest/change/normal/${{steps.create-request.outputs.sys_id}}`
-          const username = process.env.SNOW_USERNAME
-          const password = process.env.SNOW_PASSWORD
-          const auth = {
-            username: username,
-            password: password
-          }
-          while (response && response.data.result.state.value !== '3') {
-            console.log(`Request state: ${response.data.result.state.display_value}`)
-            await new Promise(r => setTimeout(r, 5000));
-            response = await axios.get(url, { auth })
-          }
-          core.setOutput('state', response.data.result.state.approval_history.display_value);
+        env:
+          sys_id: ${{ steps.create-request.outputs.sys_id }}
+        run: node ../scripts/snow/wait-for-approval.js
+
       - name: Update PR with Service Now 
         uses: actions/github-script@v7
         with:
@@ -63,5 +34,3 @@ jobs:
               pull_number: context.payload.pull_request.number,
               body: 'ServiceNow Request: ${{ steps.get-request.outputs.state }}'
             })
-
-        
