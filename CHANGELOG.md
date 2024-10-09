@@ -1,8 +1,5 @@
 # Changelog
 
-<!-- BEGIN_CHANGELOG_ACTION -->
-
-<!-- BEGIN_CHANGELOG_FROM_3 -->
 ### Version 1.0.0
 
 #### enhancement
@@ -12,6 +9,3 @@
 ```
 - Updates in `test-file.md`
 ```
-<!-- END_CHANGELOG_FROM_3 -->
-
-<!-- END_CHANGELOG_ACTION -->

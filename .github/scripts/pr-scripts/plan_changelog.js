@@ -15,7 +15,7 @@ module.exports = async ({github, context, core}) => {
     throw `'Changelog' section not found in PR body! Please add it back.`;
   if (changelogEntry.match(/^TODO:/m))
     throw `'Changelog' section needs proper text, instead of 'TODO'`;
-  const changelog = `\r\n* PR [#${ prInfo.number }](${ prInfo.html_url }) - ${ prInfo.title }\r\n\r\n\`\`\`\r\n${changelogEntry}\r\n\`\`\``;
+  const changelog = `\r\n### Version ${process.env.releaseversion}\r\n\r\n#### ${process.env.changetype}\r\n* PR [#${ prInfo.number }](${ prInfo.html_url }) - ${ prInfo.title }\r\n\r\n\`\`\`\r\n${changelogEntry}\r\n\`\`\``;
   const { writeFile } = require('fs').promises;
   await writeFile('output/changelog.md', changelog, { encoding: 'utf-8' })
 }

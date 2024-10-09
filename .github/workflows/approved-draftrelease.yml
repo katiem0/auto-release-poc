@@ -1,0 +1,152 @@
+name: 'Release: Label and Create Draft'
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  version-commit:
+    runs-on: ubuntu-latest
+    if: github.event.review.state == 'approved'
+    name: Update Release Version and Changelog in Repo
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      actions: read
+    outputs:
+      new-version: ${{ steps.read-files.outputs.new-version }}
+      changelog-content: ${{ steps.read-files.outputs.changelog-content }}
+    steps:
+      - name: Get `run-id` for `pr-label` workflow
+        id: get-run-id
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'pr-label.yml',
+              event: 'pull_request',
+              status: 'completed',
+              per_page: 100
+            });
+            const prNumber = context.issue.number;
+            const run = runs.workflow_runs.find(run => run.pull_requests.some(pr => pr.number === prNumber));
+            if (!run) {
+              throw new Error(`No completed workflow run found for PR #${prNumber}`);
+            }
+            core.setOutput('run-id', run.id);
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ steps.get-run-id.outputs['run-id'] }}
+          github-token: ${{ github.token }}
+      - name: Read files and set variables
+        id: read-files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8').trim();
+    
+            const newVersion = readFile(path.join('version-changelog', 'new-version.txt'));
+            const previousVersion = readFile(path.join('version-changelog', 'previous-version.txt'));
+            const changelogContent = readFile(path.join('version-changelog', 'changelog.md'));
+    
+            core.setOutput('new-version', newVersion);
+            core.setOutput('previous-version', previousVersion);
+            core.setOutput('changelog-content', changelogContent);
+      - name: Checkout Main for Changelog
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: src
+      - name: Fetch Release Notes
+        id: fetch-release-notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8').trim();
+
+            const changelogPath = 'src/CHANGELOG.md';
+            const changelogContent = readFile(changelogPath);
+
+            core.setOutput('existing-changelog', changelogContent);
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          path: src
+          fetch-depth: 0
+      - name: Prepend New Changelog Content
+        id: prepend-changelog
+        run: |
+          echo "# Changelog" > updated-changelog.md
+          echo "" >> updated-changelog.md
+          printf "${{ steps.read-files.outputs.changelog-content }}" >> updated-changelog.md
+          printf "${{ steps.fetch-release-notes.outputs.existing-changelog }}" | sed '1d' >> updated-changelog.md
+        working-directory: src
+      - name: "Update version in module-config.json"
+        working-directory: src
+        run: |
+          if [[ $(jq -r '.version' module-config.json) != ${{ steps.read-files.outputs.new-version }} ]]; then
+            cat <<< $(jq '.version = $NewVersion' --arg NewVersion "${{ steps.read-files.outputs.new-version }}" module-config.json ) > module-config.json
+          else
+            echo "Existing module config file has the correct version of" ${{ steps.read-files.outputs.new-version }}
+          fi
+      - name: Update README.md with New Changelog
+        uses: actions/github-script@v7
+        id: update-readme
+        with:
+          script: |
+            const fs = require('fs');
+            const readmePath = 'src/README.md';
+            const changelogPath = 'src/updated-changelog.md';
+            const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+            const changelogContent = fs.readFileSync(changelogPath, 'utf-8');
+            // Remove the first line (header) from changelogContent
+            const updatedChangelogContent = changelogContent.split('\n').slice(1).join('\n');
+            
+            const latestChangesIndex = readmeContent.indexOf('## Latest Changes');
+            const newReadmeContent = readmeContent.substring(0, latestChangesIndex) + '## Latest Changes\n\n_Everything below this line is auto-populated with GitHub Actions_\n____\n' + updatedChangelogContent;
+            fs.writeFileSync(readmePath, newReadmeContent, 'utf-8');
+      - name: Commit and Push Updates
+        working-directory: src
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp updated-changelog.md CHANGELOG.md
+          git add CHANGELOG.md README.md module-config.json
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Bot: Updating CHANGELOG, README, and module-config for release based on #${{ github.event.pull_request.number }}"
+            git push
+          fi
+  release-draft:
+    runs-on: ubuntu-latest
+    name: Create Draft Release with Notes
+    needs: version-commit
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          path: src
+          fetch-depth: 0
+      - name: Create Draft Release
+        uses: actions/github-script@v7
+        env: 
+          releaseversion: ${{ needs.version-commit.outputs.new-version }}
+          changelog: ${{ needs.version-commit.outputs.changelog-content }}
+        with:
+          script: |
+            const script = require('./src/.github/scripts/pr-scripts/release_draft.js')
+            await script({github, context, core})

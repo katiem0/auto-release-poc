@@ -1,12 +1,8 @@
 module.exports = async ({github, context, core}) => {
-  const { releaseversion } = process.env;
+  const { releaseversion, changelog } = process.env;
   const { owner, repo } = context.repo;
   const { number: issue_number } = context.issue;
-  const { readdir, readFile } = require('fs').promises;
-  const utf8 = { encoding: 'utf-8' };
-  const readText = (name) => readFile(name, utf8).then(x => x.trim());
-
-  const changelog = await readText(`output/artifact/changelog.md`);           
+        
   const {data: allComments} = await github.rest.issues.listComments({ issue_number, owner, repo });
   const ourComments = allComments
     .filter(comment => comment.user.login === 'github-actions[bot]')
