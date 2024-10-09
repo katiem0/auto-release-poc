@@ -60,10 +60,10 @@ jobs:
             core.setOutput('new-version', newVersion);
             core.setOutput('previous-version', previousVersion);
             core.setOutput('changelog-content', changelogContent);
-      - name: Checkout Main for Changelog
+      - name: Checkout Base Branch for Changelog
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.base.ref }}
           path: src
       - name: Fetch Release Notes
         id: fetch-release-notes
