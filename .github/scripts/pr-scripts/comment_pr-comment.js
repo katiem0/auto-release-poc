@@ -16,11 +16,11 @@ module.exports = async ({github, context, core}) => {
     const readText = (name) => readFile(name, utf8).then(x => x.trim());
 
     lines.push('| '+[
-      `${await readText(`output/artifact/previous-version.txt`)}`,
-      `**${await readText(`output/artifact/new-version.txt`)}**`,
+      `${await readText(`output/version-changelog/previous-version.txt`)}`,
+      `**${await readText(`output/version-changelog/new-version.txt`)}**`,
     ].join(' | ')+' |');
 
-    sections.push(`<details><summary>Changelog preview: </summary>\n\n${await readText(`output/artifact/changelog.md`)}\n</details>`);
+    sections.push(`<details><summary>Changelog preview: </summary>\n\n${await readText(`output/version-changelog/changelog.md`)}\n</details>`);
   }
 
   const finalBody = [lines.join('\n'), ...sections].join('\n\n');
