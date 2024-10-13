@@ -28,7 +28,11 @@ STOP! Click the 'Preview' tab for a smoother PR experience!
   <tr>
     <td><b>Promote Pre-Release</b><br/>Promote pre-release version to latest on merge</td>
     <td><a href="?expand=1&template=promote_prerelease.md">click here</a></td>
-  </tr> 
+  </tr>
+  <tr>
+    <td><b>No Release Change</b><br/>Change that does not require release creation</td>
+    <td><a href="?expand=1&template=no_release.md">click here</a></td>
+  </tr>
 </table>
 
 **Note:** You will be asked to manually copy and complete an appropriate template if you do not choose a template from above or choose one that doesn't fit your changes. When in doubt choose the most broad template option.

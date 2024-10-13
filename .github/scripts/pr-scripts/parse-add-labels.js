@@ -3,7 +3,7 @@ module.exports = async ({github, context, core}) => {
   const { number: issue_number } = context.issue;
 
   const body = context.payload.pull_request.body;
-  const releaseTypes = ["major", "minor", "patch", "transition"];
+  const releaseTypes = ["major", "minor", "patch", "transition", "no release"];
   const changeTypes = ["feature", "enhancement", "fix", "bugfix", "bug", "chore"];
   const qualityTypes = ["alpha", "beta"];
 
@@ -12,6 +12,7 @@ module.exports = async ({github, context, core}) => {
     'minor': 'semver:minor',
     'patch': 'semver:patch',
     'transition': 'transition',
+    'no release': 'no-release',
   };
   const changeMap = {
     'feature': 'feature',

@@ -10,7 +10,7 @@ on:
 jobs:
   version-commit:
     runs-on: ubuntu-latest
-    if: github.event.review.state == 'approved'
+    if: github.event.review.state == 'approved' && contains(github.event.pull_request.labels.*.name, 'no-release') == false
     name: Update Release Version and Changelog in Repo
     permissions:
       issues: write
