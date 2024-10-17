@@ -81,51 +81,43 @@ jobs:
       - name: "Checkout Repository"
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           path: src
           fetch-depth: 0
       - name: Prepend New Changelog Content
         id: prepend-changelog
         run: |
+          mkdir -p tmp && cd tmp
           echo "# Changelog" > updated-changelog.md
           echo "" >> updated-changelog.md
           printf "${{ steps.read-files.outputs.changelog-content }}" >> updated-changelog.md
           printf "${{ steps.fetch-release-notes.outputs.existing-changelog }}" | sed '1d' >> updated-changelog.md
-        working-directory: src
       - name: "Update version in module-config.json"
+        working-directory: tmp
+        run: |
+          cat <<< $(jq '.version = $NewVersion' --arg NewVersion "${{ steps.read-files.outputs.new-version }}" ${{ github.workspace }}/src/module-config.json ) >new-module-config.json
+      - name: Generate Readme Content
         working-directory: src
         run: |
-          if [[ $(jq -r '.version' module-config.json) != ${{ steps.read-files.outputs.new-version }} ]]; then
-            cat <<< $(jq '.version = $NewVersion' --arg NewVersion "${{ steps.read-files.outputs.new-version }}" module-config.json ) > module-config.json
-          else
-            echo "Existing module config file has the correct version of" ${{ steps.read-files.outputs.new-version }}
-          fi
-      - name: Update README.md with New Changelog
-        uses: actions/github-script@v7
-        id: update-readme
+          npm install js-yaml --save
+          node .github/scripts/generate-readme.js
+      - name: Checkout Pull Request Branch Again
+        uses: actions/checkout@v4
         with:
-          script: |
-            const fs = require('fs');
-            const readmePath = 'src/README.md';
-            const changelogPath = 'src/updated-changelog.md';
-            const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-            const changelogContent = fs.readFileSync(changelogPath, 'utf-8');
-            // Remove the first line (header) from changelogContent
-            const updatedChangelogContent = changelogContent.split('\n').slice(1).join('\n');
-            
-            const latestChangesIndex = readmeContent.indexOf('## Latest Changes');
-            const newReadmeContent = readmeContent.substring(0, latestChangesIndex) + '## Latest Changes\n\n_Everything below this line is auto-populated with GitHub Actions_\n____\n' + updatedChangelogContent;
-            fs.writeFileSync(readmePath, newReadmeContent, 'utf-8');
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          path: src
       - name: Commit and Push Updates
         working-directory: src
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp updated-changelog.md CHANGELOG.md
+          cp ${{ github.workspace }}/tmp/updated-changelog.md CHANGELOG.md
+          cp ${{ github.workspace }}/tmp/new-README.md README.md
+          cp ${{ github.workspace }}/tmp/new-module-config.json module-config.json
           git add CHANGELOG.md README.md module-config.json
           if ! git diff-index --quiet HEAD; then
             git commit -m "Bot: Updating CHANGELOG, README, and module-config for release based on #${{ github.event.pull_request.number }}"
-            git push
+            git push origin ${{ github.event.pull_request.head.ref }}
           fi
   release-draft:
     runs-on: ubuntu-latest

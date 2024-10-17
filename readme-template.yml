@@ -1,0 +1,30 @@
+readme:
+  title: "auto-release-poc"
+  summary: "This is a POC for auto-releasing a GitHub Action"
+  benefits:
+    - Simplifies release process of GitHub Actions
+    - Automates PR Validation
+  design_link:
+    - https://github.com/katiem0/auto-release-poc
+  design_picture:
+  feature_metrics:
+    headers:
+      - Feature
+      - Status
+    rows:
+      - [Importing Certificates, Implemented]
+  known_issues:
+    - None 
+  module_upgrade_steps:
+    - None
+  owner_maintainers:
+    - '@katiem0'
+  pre_requisites:
+    - Certificate, private key, and chain must be provided in PEM format
+    - The certificate must be valid and signed by a trusted CA at the time of import
+    - Only RSA certificates with a 2048-bit key size are supported.
+  usage:
+    - None
+
+module_validation_workflow:
+  tf_version: 1.0

@@ -15,6 +15,7 @@ jobs:
       release-type: ${{ steps.parse-labels.outputs.release-type }}
       change-type: ${{ steps.parse-labels.outputs.change-type }}
       prerelease-type: ${{ steps.parse-labels.outputs.prerelease-type }}
+      provider-version: ${{ steps.parse-labels.outputs.provider-version }}
       is-merge-event: >-
         ${{ github.event_name == 'pull_request_target'
          && github.event.action == 'closed'
@@ -70,7 +71,6 @@ jobs:
         id: prevtag
         working-directory: src
         run: |
-          echo "providerversion=$(jq -r '.initialProviderModuleVersion' module-config.json)" >> "$GITHUB_OUTPUT"
           if previousversion=$(git describe --tags --match="[0-9]*" --abbrev=0 HEAD 2>/dev/null); then
             echo "previousversion=$(git describe --tags --match="[0-9]*" --abbrev=0 HEAD)" >> "$GITHUB_OUTPUT"
           else
@@ -83,7 +83,7 @@ jobs:
         env:
           PREV_VERSION: ${{ steps.prevtag.outputs.previousversion }}
           RELEASE_TYPE: ${{ needs.label.outputs.release-type }}
-          PROVIDER_VERSION: ${{ steps.prevtag.outputs.providerversion }}
+          PROVIDER_VERSION: ${{ needs.label.outputs.provider-version }}
         with:
           script: |
             const script = require('./src/.github/scripts/pr-scripts/plan_new-version.js')
@@ -96,7 +96,7 @@ jobs:
         env:
           PREV_VERSION: ${{ steps.prevtag.outputs.previousversion }}
           RELEASE_TYPE: ${{ needs.label.outputs.release-type }}
-          PROVIDER_VERSION: ${{ steps.prevtag.outputs.providerversion }}
+          PROVIDER_VERSION: ${{ needs.label.outputs.provider-version }}
           PRERELEASE_TYPE: ${{ needs.label.outputs.prerelease-type }}
         with:
           script: |

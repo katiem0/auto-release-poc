@@ -33,7 +33,7 @@ module.exports = async ({github, context, core}) => {
   const latestComment = ourComments.slice(-1)[0];
 
   if (latestComment && latestComment.body === finalBody) {
-    console.log('Existing comment is already up to date.');
+    console.log('Existing comment is already up to date.'); 
     return;
   }
   const {data: newComment} = await github.rest.issues.createComment({ issue_number, owner, repo, body: finalBody });

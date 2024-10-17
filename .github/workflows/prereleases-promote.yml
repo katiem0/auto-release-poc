@@ -11,6 +11,7 @@ jobs:
   release:
     name: Commit Release
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'no-release') == false
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
