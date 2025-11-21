@@ -64,7 +64,7 @@ jobs:
       providerversion: ${{ steps.prevtag.outputs.providerversion }}
     steps:
       - name: Clone Repo to determine previous git tag
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: src
           fetch-depth: 0
@@ -124,7 +124,7 @@ jobs:
     name: 'Comment on PR'
     steps:
       - name: Clone Repo to determine previous git tag
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: src
           fetch-depth: 0
@@ -148,7 +148,7 @@ jobs:
         with:
           path: output
       - name: "Checkout Repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           path: src
@@ -228,7 +228,7 @@ jobs:
       pull-requests: write
     steps:
       - name: "Checkout Repository"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           path: src

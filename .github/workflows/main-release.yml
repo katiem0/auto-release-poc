@@ -21,7 +21,7 @@ jobs:
         run: |
           echo ${{ github.event.pull_request.number }}
       - name: Checkout Reference
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: src
       - name: Promote Draft Release to Latest
